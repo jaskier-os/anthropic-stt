@@ -1,0 +1,17 @@
+{
+  "name": "anthropic-stt",
+  "version": "1.0.0",
+  "description": "Anthropic voice_stream speech-to-text service",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "joi": "^17.11.0",
+    "koa": "^2.15.0",
+    "ws": "^8.16.0"
+  }
+}

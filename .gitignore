@@ -1,0 +1,25 @@
+# Env
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Caches
+.cache/
+.npm/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Test fixtures
+*.wav
+test-audio.wav
