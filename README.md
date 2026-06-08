@@ -1,101 +1,48 @@
 # anthropic-stt
 
-An HTTP speech-to-text service that bridges raw PCM/WAV audio to Anthropic's
-`voice_stream` speech-to-text WebSocket endpoint and returns transcripts. It
-exposes a one-shot file transcription endpoint and a streaming (Server-Sent
-Events) endpoint for per-utterance, low-latency transcription.
+## What it is
 
-Authentication to Anthropic is done with the OAuth token that Claude Code stores
-in `~/.claude/.credentials.json` (the token created by `claude login`). The
-service reads that token read-only; it never writes or refreshes it.
+A speech-to-text bridge. It takes audio over plain HTTP and relays it to
+Anthropic's `voice_stream` WebSocket (`wss://api.anthropic.com/api/ws/speech_to_text/voice_stream`),
+returning the transcript. Koa server on port 10016. Two endpoints:
+`POST /transcribe` for one-shot audio buffers and `POST /v1/transcribe` for
+streaming. Auth to Anthropic uses the Claude Code OAuth credentials, not an API
+key.
 
-## Prerequisites
+## Build / run
 
-- Node.js 20+ (the Dockerfile uses `node:20-alpine`).
-- A valid Claude Code OAuth login on the machine running this service. Run
-  `claude login` so that `~/.claude/.credentials.json` exists and is current.
-  Token refresh is expected to be handled externally (for example a cron job);
-  this service only reads the token.
+Local dev:
 
-## Setup
+```bash
+npm install
+cp .env.example .env   # edit if your credentials path differs
+npm run dev            # node --watch, src/index.js
+npm start              # plain node
+```
 
-1. Copy the example environment file and adjust values:
+There's a `test-oneshot.js` for a quick manual check against `/transcribe`.
 
-   ```bash
-   cp .env.example .env
-   ```
-
-   Environment variables:
-
-   - `PORT` -- port the HTTP service listens on (default `10016`).
-   - `CLAUDE_CREDENTIALS_PATH` -- optional. Absolute path to the Claude Code
-     OAuth credentials file. Defaults to `~/.claude/.credentials.json`. Set this
-     only if your credentials live somewhere else.
-
-2. Install dependencies:
-
-   ```bash
-   npm ci
-   ```
-
-## Build
-
-No build step is required (plain Node.js ES modules). To build the container
-image:
+Docker:
 
 ```bash
 docker build -t anthropic-stt .
+docker run -p 10016:10016 --env-file .env anthropic-stt
 ```
 
-## Run
+EXPOSE 10016, healthcheck on `/health` (also reports OAuth token status).
 
-```bash
-npm start
-```
+## Configuration
 
-Or with auto-reload during development:
+Config is env vars. `.env.example` is the source of truth - copy to `.env` and
+edit. There are only two:
 
-```bash
-npm run dev
-```
+- `PORT` - HTTP listen port (default 10016).
+- `CLAUDE_CREDENTIALS_PATH` - path to the Claude Code OAuth credentials file.
+  Defaults to `~/.claude/.credentials.json` (what `claude login` maintains);
+  set it only if yours live elsewhere.
 
-The service logs `HTTP server on port <PORT>` once it is listening.
+## Dependencies
 
-### Endpoints
-
-- `GET /health` -- service status plus OAuth token status (exists / expired /
-  minutes until expiry).
-- `POST /transcribe?language=<lang>` -- one-shot transcription. Send a WAV (or
-  raw PCM16LE @ 16 kHz mono) body as `application/octet-stream`; returns
-  `{ "text": "...", "language": "..." }`.
-- `POST /v1/transcribe?lang=<lang>` -- streaming transcription. Send chunked
-  PCM16LE @ 16 kHz mono and half-close the body to signal end-of-utterance.
-  Responds with `text/event-stream` SSE events: `partial`, `final`, `error`.
-
-Supported languages include: en, es, fr, ja, de, pt, it, nl, hi, ko, pl, ru,
-tr, uk, zh, cs, da, sv, no.
-
-## Test
-
-A simple one-shot smoke test is included. Provide a 16 kHz mono WAV file:
-
-```bash
-# Service must already be running.
-WAV_PATH=./test-audio.wav LANGUAGE=en node test-oneshot.js
-# or pass the path as the first argument:
-node test-oneshot.js ./test-audio.wav
-```
-
-Configurable via environment: `WAV_PATH`, `SERVICE_URL`, `LANGUAGE`, `PORT`.
-
-## TLS / VPN
-
-This service requires no certificate and no VPN. It connects outbound to
-`wss://api.anthropic.com` over standard TLS using the system trust store, and
-serves plain HTTP locally (intended to sit behind a reverse proxy or be reached
-over a trusted network). There is no inbound TLS or cert configuration to set.
-
-## Model weights
-
-None. Transcription is performed remotely by Anthropic's `voice_stream`
-endpoint; there are no local model files to download.
+Node >= 20, Koa 2, `ws` for the upstream WebSocket. No model weights, no
+database. The credentials file from `claude login` must be present and valid -
+the service reads and refreshes against it; check `/health` for token status.
