@@ -6,8 +6,6 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-// Default to the standard Claude Code credentials file. Override with
-// CLAUDE_CREDENTIALS_PATH if the credentials live elsewhere.
 const CREDENTIALS_PATH = process.env.CLAUDE_CREDENTIALS_PATH
   || path.join(os.homedir(), '.claude', '.credentials.json');
 

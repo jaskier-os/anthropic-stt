@@ -1,9 +1,9 @@
 // Quick test: send a WAV file to the one-shot /transcribe endpoint
 import fs from 'fs';
 
-const WAV_PATH = process.env.WAV_PATH || process.argv[2] || './test-audio.wav';
-const SERVICE_URL = process.env.SERVICE_URL || `http://localhost:${process.env.PORT || 10016}`;
-const LANGUAGE = process.env.LANGUAGE || 'en';
+const WAV_PATH = '/tmp/test-audio.wav';
+const SERVICE_URL = 'http://localhost:10016';
+const LANGUAGE = 'ru';
 
 async function main() {
   console.log('Reading WAV file...');
