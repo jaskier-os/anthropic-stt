@@ -1,5 +1,7 @@
 # anthropic-stt
 
+> **Docs & wiki:** [github.com/jaskier-os/docs/wiki](https://github.com/jaskier-os/docs/wiki)
+
 ## What it is
 
 A speech-to-text bridge. It takes audio over plain HTTP and relays it to
