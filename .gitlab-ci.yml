@@ -51,7 +51,7 @@ build:
     DOCKERFILE: Dockerfile
     BUILD_CONTEXT: "."
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
 
 deploy:
   extends: .deploy
@@ -59,7 +59,7 @@ deploy:
     SERVICE: anthropic-stt
   needs: [build]
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
 
 sync-github:
   stage: sync
